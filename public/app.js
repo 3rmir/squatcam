@@ -33,12 +33,13 @@ let knee, hip, ankle, kneeFlexion, dorsiflexion, hipFlexion, shoulder, anKnee, s
 
 function setup() {
 	let canvas = createCanvas(1280, 960);
+	// let canvas = createCanvas(windowWidth, windowHeight);
 	canvas.parent('app');
 
 	constraints = {
 		video: {
-			width: { max: 1280 }, //640
-			height: { max: 960 }, //480
+			width: { max: windowWidth }, //640
+			height: { max: windowHeight }, //480
 			facingMode: {
 				ideal: 'environment'
 			}
@@ -302,9 +303,9 @@ function draw() {
 	}
 }
 
-// function windowResized() {
-// 	resizeCanvas(windowWidth, windowHeight);
-// }
+function windowResized() {
+	resizeCanvas(1280, 960);
+}
 
 function addTextToCanvas(textSize,text) {
 	fill('#4A5568');
