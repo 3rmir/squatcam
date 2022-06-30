@@ -13,7 +13,11 @@ Available at https://ml5js.org
 let video;
 let poseNet;
 let poses = [];
-let side = 'left';
+
+let left = 'linke';
+let right = 'rechte';
+let side = left;
+
 let camera = 'rear';
 
 let maxKneeFlexion = 180;
@@ -21,16 +25,20 @@ let maxHipFlexion = 180;
 let maxDorsiflexion = 180;
 let maxTrunkLean = 180;
 
+let squatCounter = 0
+let thresholdLastTime = 180
+let stage = ''
+
 let knee, hip, ankle, kneeFlexion, dorsiflexion, hipFlexion, shoulder, anKnee, sHip, trunkLean;
 
 function setup() {
-	let canvas = createCanvas(640, 480);
+	let canvas = createCanvas(1280, 960);
 	canvas.parent('app');
 
 	constraints = {
 		video: {
-			width: { max: 640 },
-			height: { max: 480 },
+			width: { max: 1280 }, //640
+			height: { max: 960 }, //480
 			facingMode: {
 				ideal: 'environment'
 			}
@@ -52,7 +60,7 @@ function setup() {
 
 		if (poses.length > 0) {
 			switch (side) {
-				case 'left':
+				case left:
 					knee = poses[0].pose.leftKnee;
 					hip = poses[0].pose.leftHip;
 					ankle = poses[0].pose.leftAnkle;
@@ -78,7 +86,7 @@ function setup() {
 							Math.atan2(shoulder.y - hip.y, shoulder.x - hip.x)) *
 							(180 / Math.PI);
 					break;
-				case 'right':
+				case right:
 					knee = poses[0].pose.rightKnee;
 					hip = poses[0].pose.rightHip;
 					ankle = poses[0].pose.rightAnkle;
@@ -135,13 +143,13 @@ function setup() {
 	// );
 	// button3.mousePressed(switchCam);
 
-	button4 = createButton('<i class="fas fa-sync-alt"></i> Reset');
-	button4.parent('resetButtonContainer');
-	button4.id('resetButton');
-	button4.class(
-		'rounded-full py-1 px-4 hover:text-gray-900 font-semibold text-sm border-2 border-gray-500 hover:border-gray-500 hover:bg-white shadow-md'
-	);
-	button4.mousePressed(resetMax);
+	// button4 = createButton('<i class="fas fa-sync-alt"></i> Reset');
+	// button4.parent('resetButtonContainer');
+	// button4.id('resetButton');
+	// button4.class(
+	// 	'rounded-full py-1 px-4 hover:text-gray-900 font-semibold text-sm border-2 border-gray-500 hover:border-gray-500 hover:bg-white shadow-md'
+	// );
+	// button4.mousePressed(resetMax);
 }
 
 // function switchCam() {
@@ -156,28 +164,31 @@ function setup() {
 
 function switchSides() {
 	switch (side) {
-		case 'left':
-			side = 'right';
-			select('#sideInstruction').html('right');
+		case left:
+			side = right;
+			// select('#sideInstruction').html(right);
 			resetMax();
 			break;
-		case 'right':
-			side = 'left';
-			select('#sideInstruction').html('left');
+		case right:
+			side = left;
+			// select('#sideInstruction').html(left);
 			resetMax();
 	}
 }
 
 function resetMax() {
 	maxKneeFlexion = 180;
-	maxHipFlexion = 180;
-	maxDorsiflexion = 180;
-	maxTrunkLean = 180;
+	squatCounter = 0
+
+	// maxHipFlexion = 180;
+	// maxDorsiflexion = 180;
+	// maxTrunkLean = 180;
 
 	select('#kneeFlexion').html('-');
-	select('#hipFlexion').html('-');
-	select('#shinAngle').html('-');
-	select('#trunkAngle').html('-');
+	select('#squatCounter').html('0');
+	// select('#hipFlexion').html('-');
+	// select('#shinAngle').html('-');
+	// select('#trunkAngle').html('-');
 }
 
 function saveImage() {
@@ -191,13 +202,21 @@ function modelReady() {
 
 function draw() {
 	clear();
+	
+	//move image by the width of image to the left
+	translate(video.width, 0);
+	//then scale it by -1 in the x-axis
+	//to flip the image
+	scale(-1, 1);
+	
 	image(video, 0, 0, width, height);
 
-	fill('white');
-	strokeWeight(0);
-	stroke('#A0AEC0');
-	rectMode(CENTER);
-	rect(45, 24, 60, 25, 15);
+	// Display Side
+	// fill('white');
+	// strokeWeight(0);
+	// stroke('#A0AEC0');
+	// rectMode(CENTER);
+	// rect(45, 24, 60, 25, 15);
 
 	fill('#4A5568');
 	noStroke();
@@ -205,40 +224,96 @@ function draw() {
 	textAlign(CENTER, CENTER);
 	textStyle(BOLD);
 	textFont('sans-serif');
-	displaySide = side.toUpperCase();
-	text(displaySide, 45, 25);
-
+	// displaySide = side.toUpperCase();
+	// text(displaySide, 45, 25);
+	
 	// We can call both functions to draw all keypoints and the skeletons
 	drawKeypoints();
 	drawSkeleton();
-
+	
 	if (poses.length > 0) {
 		// draws the angles as they happen over the video feed
 		fill('#FFFFFF');
-		text(Math.round(kneeFlexion) + '°', knee.x + 20, knee.y + 10);
-		text(Math.round(hipFlexion) + '°', hip.x + 20, hip.y + 10);
-		text(Math.round(dorsiflexion) + '°', ankle.x + 20, ankle.y + 10);
-		text(Math.round(trunkLean) + '°', shoulder.x + 20, shoulder.y + 10);
-
+		// translate(-(video.width*2), 0);
+		// scale(-1, 1);
+		// text(Math.round(kneeFlexion) + '°', knee.x + 20, knee.y + 10);
+		// text(Math.round(hipFlexion) + '°', hip.x + 20, hip.y + 10);
+		// text(Math.round(dorsiflexion) + '°', ankle.x + 20, ankle.y + 10);
+		// text(Math.round(trunkLean) + '°', shoulder.x + 20, shoulder.y + 10);
+		
 		// updates the max numbers reached if they are exceeded at any time
 		// then replaces the connected HTML span with the new max number
-		if ((knee.confidence > 0.5) & (kneeFlexion > 20) & (kneeFlexion < maxKneeFlexion)) {
-			maxKneeFlexion = Math.round(kneeFlexion);
-			select('#kneeFlexion').html(maxKneeFlexion);
+		// if ((knee.confidence > 0.5) & (kneeFlexion > 20) & (kneeFlexion < maxKneeFlexion)) {
+		// 	maxKneeFlexion = Math.round(kneeFlexion);
+		// 	select('#kneeFlexion').html(maxKneeFlexion);
+		// }
+		// if ((hip.confidence > 0.5) & (hipFlexion > 20) & (hipFlexion < maxHipFlexion)) {
+		// 	maxHipFlexion = Math.round(hipFlexion);
+		// 	select('#hipFlexion').html(maxHipFlexion);
+		// }
+		// if ((ankle.confidence > 0.5) & (dorsiflexion > 20) & (dorsiflexion < maxDorsiflexion)) {
+		// 	maxDorsiflexion = Math.round(dorsiflexion);
+		// 	select('#shinAngle').html(maxDorsiflexion);
+		// }
+		// if ((shoulder.confidence > 0.5) & (trunkLean > 20) & (trunkLean < maxTrunkLean)) {
+		// 	maxTrunkLean = Math.round(trunkLean);
+		// 	select('#trunkAngle').html(maxTrunkLean);
+		// }
+
+		// Rectangle: Background in white
+		fill('white');
+		strokeWeight(0);
+		stroke('#A0AEC0');
+		rectMode(CENTER);
+		rect(width-100, 100, 125, 125, 15);
+		
+		// Text: Squats:
+		fill('#4A5568');
+		noStroke();
+		textSize(18);
+		textAlign(CENTER, CENTER);
+		textStyle(BOLD);
+		textFont('sans-serif');
+		scale(-1, 1);
+  		translate(-(width-100)*2, 0);
+		text('Squats:', width-100, 65);
+
+		// Text: Degree Knee
+		textSize(12);
+		text('Degree ' + Math.round(kneeFlexion) + '°', width-100, 140);
+
+		// Counter: 0
+		textSize(36);
+		text(squatCounter, width-100, 100);
+
+		
+		if ((knee.confidence > 0.5) & (kneeFlexion > 150)){
+			console.log("knee > 150")
+			stage = 'up'
 		}
-		if ((hip.confidence > 0.5) & (hipFlexion > 20) & (hipFlexion < maxHipFlexion)) {
-			maxHipFlexion = Math.round(hipFlexion);
-			select('#hipFlexion').html(maxHipFlexion);
-		}
-		if ((ankle.confidence > 0.5) & (dorsiflexion > 20) & (dorsiflexion < maxDorsiflexion)) {
-			maxDorsiflexion = Math.round(dorsiflexion);
-			select('#shinAngle').html(maxDorsiflexion);
-		}
-		if ((shoulder.confidence > 0.5) & (trunkLean > 20) & (trunkLean < maxTrunkLean)) {
-			maxTrunkLean = Math.round(trunkLean);
-			select('#trunkAngle').html(maxTrunkLean);
+		if ((knee.confidence > 0.5) & (kneeFlexion <= 90) & (stage == 'up')){
+			console.log("knee <= 90")
+			stage = 'down'
+			squatCounter++
+			console.log(squatCounter)
+			
+			// select('#squatCounter').html(squatCounter);
 		}
 	}
+}
+
+// function windowResized() {
+// 	resizeCanvas(windowWidth, windowHeight);
+// }
+
+function addTextToCanvas(textSize,text) {
+	fill('#4A5568');
+	noStroke();
+	textSize(textSize);
+	textAlign(CENTER, CENTER);
+	textStyle(BOLD);
+	textFont('sans-serif');
+	text(text);
 }
 
 // A function to draw ellipses over the detected keypoints
