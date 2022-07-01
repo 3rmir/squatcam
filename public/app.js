@@ -32,14 +32,14 @@ let stage = ''
 let knee, hip, ankle, kneeFlexion, dorsiflexion, hipFlexion, shoulder, anKnee, sHip, trunkLean;
 
 function setup() {
-	let canvas = createCanvas(1280, 960);
-	// let canvas = createCanvas(windowWidth, windowHeight);
+	// let canvas = createCanvas(1280, 960);
+	let canvas = createCanvas(windowWidth/1.5, (windowWidth/1.5)/1.33333);
 	canvas.parent('app');
 
 	constraints = {
 		video: {
-			width: { max: windowWidth }, //640
-			height: { max: windowHeight }, //480
+			width: { max: windowWidth/1.5 }, //640
+			height: { max: (windowWidth/1.5)/1.33333 }, //480
 			facingMode: {
 				ideal: 'environment'
 			}
@@ -120,13 +120,13 @@ function setup() {
 	textFont('Open Sans');
 	textSize(22);
 
-	button1 = createButton('<i class="fas fa-sync-alt"></i> Switch Sides');
-	button1.parent('switchButtonContainer');
-	button1.id('switchButton');
-	button1.class(
-		'rounded-full bg-white py-3 px-5 mx-3 shadow-lg hover:text-gray-900 border-2 border-white hover:border-gray-500'
-	);
-	button1.mousePressed(switchSides);
+	// button1 = createButton('<i class="fas fa-sync-alt"></i> Switch Sides');
+	// button1.parent('switchButtonContainer');
+	// button1.id('switchButton');
+	// button1.class(
+	// 	'rounded-full bg-white py-3 px-5 mx-3 shadow-lg hover:text-gray-900 border-2 border-white hover:border-gray-500'
+	// );
+	// button1.mousePressed(switchSides);
 
 	button2 = createButton('<i class="fas fa-camera"></i> Take Snapshot');
 	button2.parent('saveButtonContainer');
@@ -203,13 +203,11 @@ function modelReady() {
 
 function draw() {
 	clear();
-	
 	//move image by the width of image to the left
 	translate(video.width, 0);
-	//then scale it by -1 in the x-axis
-	//to flip the image
+	//then scale it by -1 in the x-axis to flip the image
 	scale(-1, 1);
-	
+
 	image(video, 0, 0, width, height);
 
 	// Display Side
@@ -231,6 +229,32 @@ function draw() {
 	// We can call both functions to draw all keypoints and the skeletons
 	drawKeypoints();
 	drawSkeleton();
+
+	// Rectangle: Background in white
+	fill('white');
+	strokeWeight(0);
+	stroke('#A0AEC0');
+	rectMode(CENTER);
+	rect(width-100, 100, 125, 125, 15);
+	
+	// Text: Squats:
+	fill('#4A5568');
+	noStroke();
+	textSize(18);
+	textAlign(CENTER, CENTER);
+	textStyle(BOLD);
+	textFont('sans-serif');
+	scale(-1, 1);
+	  translate(-(width-100)*2, 0);
+	text('Squats:', width-100, 65);
+
+	// Text: Degree Knee
+	textSize(12);
+	text('Degree ' + Math.round(kneeFlexion) + '°', width-100, 140);
+
+	// Counter: 0
+	textSize(36);
+	text(squatCounter, width-100, 100);
 	
 	if (poses.length > 0) {
 		// draws the angles as they happen over the video feed
@@ -260,33 +284,6 @@ function draw() {
 		// 	maxTrunkLean = Math.round(trunkLean);
 		// 	select('#trunkAngle').html(maxTrunkLean);
 		// }
-
-		// Rectangle: Background in white
-		fill('white');
-		strokeWeight(0);
-		stroke('#A0AEC0');
-		rectMode(CENTER);
-		rect(width-100, 100, 125, 125, 15);
-		
-		// Text: Squats:
-		fill('#4A5568');
-		noStroke();
-		textSize(18);
-		textAlign(CENTER, CENTER);
-		textStyle(BOLD);
-		textFont('sans-serif');
-		scale(-1, 1);
-  		translate(-(width-100)*2, 0);
-		text('Squats:', width-100, 65);
-
-		// Text: Degree Knee
-		textSize(12);
-		text('Degree ' + Math.round(kneeFlexion) + '°', width-100, 140);
-
-		// Counter: 0
-		textSize(36);
-		text(squatCounter, width-100, 100);
-
 		
 		if ((knee.confidence > 0.5) & (kneeFlexion > 150)){
 			console.log("knee > 150")
@@ -303,9 +300,9 @@ function draw() {
 	}
 }
 
-function windowResized() {
-	resizeCanvas(1280, 960);
-}
+// function windowResized() {
+// 	resizeCanvas(windowWidth/1.5, (windowWidth/1.5)/1.33333);
+// }
 
 function addTextToCanvas(textSize,text) {
 	fill('#4A5568');
